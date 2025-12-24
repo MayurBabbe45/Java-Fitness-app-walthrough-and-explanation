@@ -398,3 +398,72 @@ return new ResponseEntity<>(userService.register(registerRequest), HttpStatus.CR
 ---
 # After that Created routes and functionality of POST api/activities (Almost same process as above⬆️)
 ---
+
+----
+# GET METHOD FOR ACTIVITIES
+---
+# 📨 Handling HTTP Headers with `@RequestHeader`
+
+### 🔍 Code Breakdown
+
+```java
+@GetMapping
+public ResponseEntity<List<ActivityResponse>> getUserActivities(
+    @RequestHeader(value = "x-User-ID") String userId
+) {
+    return ResponseEntity.ok(activityService.getUserActivities(userId));
+}
+
+```
+
+### 1️⃣ `@RequestHeader` (The New Concept)
+
+* **What is a Header?**
+Think of an HTTP Request like a physical letter ✉️.
+* **The Body (`@RequestBody`):** The letter inside the envelope (the main content).
+* **The Header (`@RequestHeader`):** The writing **on the envelope** (metadata). It contains info like "To Address", "From Address", or "Stamp".
+
+
+* **How it works here:**
+* The code `@RequestHeader(value = "x-User-ID")` tells Spring Boot: *"Look at the envelope (headers) of this request. Find the specific label written as 'x-User-ID' and give me its value."*
+* This value is then stored in the `String userId` variable.
+
+
+
+### 2️⃣ Why use Headers for User ID?
+
+You might wonder, *"Why not just send the User ID in the URL like `/users/{id}/activities`?"*
+
+Using headers is a common pattern in **Microservices** or secure architectures:
+
+* **Security/Middleware:** Often, a user logs in via an API Gateway or specific Auth Service. That service verifies who the user is and "stamps" the request with a header (`x-User-ID`) before passing it to your service.
+* **Cleaner URLs:** Your endpoint handles "activities for *the current user*," so you don't need the ID cluttering the URL.
+
+### 3️⃣ `@GetMapping` vs `@PostMapping`
+
+* In your previous `register` example, you used `@PostMapping` because you were **creating** data.
+* Here, you use `@GetMapping` because you are **fetching** (reading) data.
+* *Note:* GET requests usually **do not** have a Body. This is why passing data via Headers or URL parameters is necessary for GET requests.
+
+
+
+### 4️⃣ Returning a List
+
+* **`ResponseEntity<List<ActivityResponse>>`**:
+* It returns a `List` (collection) of activities.
+* It wraps that list in a `ResponseEntity` to ensure the status code is `200 OK`.
+
+
+
+---
+
+### 🔄 The Flow
+
+1. **Frontend/Client:** Sends a GET request.
+* *Header:* `x-User-ID: 12345`
+* *URL:* `/api/activities`
+
+
+2. **Controller:** Spies the `x-User-ID` header and extracts `"12345"`.
+3. **Service:** Calls `activityService.getUserActivities("12345")`.
+4. **Response:** Returns a JSON list of that user's activities.
